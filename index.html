@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urna Eletrônica Simulador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+        .urna-body {
+            width: 800px;
+            height: 600px; 
+            background-color: #e0e0e0;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        .teclado {
+            background-color: #3d3d3d;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .tecla {
+            background-color: #282828;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid #1a1a1a;
+            box-shadow: 0 4px #1a1a1a;
+            transition: all 0.1s ease;
+        }
+        .tecla:active {
+            box-shadow: 0 2px #1a1a1a;
+            transform: translateY(2px);
+        }
+        .tecla-branco { background-color: #f5f5f5; color: #333; box-shadow: 0 4px #b0b0b0; }
+        .tecla-branco:active { box-shadow: 0 2px #b0b0b0; }
+        .tecla-corrige { background-color: #f08202; color: white; box-shadow: 0 4px #c06801; }
+        .tecla-corrige:active { box-shadow: 0 2px #c06801; }
+        .tecla-confirma { background-color: #00965a; color: white; box-shadow: 0 4px #006b3f; }
+        .tecla-confirma:active { box-shadow: 0 2px #006b3f; }
+
+        .tela {
+            background-color: #d1d5db;
+            border: 5px solid #a1a1aa;
+        }
+        .numero-input {
+            border: 2px solid #333;
+            width: 40px;
+            height: 50px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 700;
+        }
+        .fim-tela {
+             background-color: #d1d5db;
+        }
+        .management-panel {
+            width: 400px;
+            height: 600px;
+        }
+        #drop-zone {
+            border: 2px dashed #cbd5e1;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        #drop-zone.dragover {
+            background-color: #e0e7ff;
+            border-color: #818cf8;
+        }
+        /* 스크롤바 스타일링 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-300 flex items-center justify-center min-h-screen p-4">
+
+    <!-- 모달 백드롭 -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+    
+    <!-- 삭제 확인 모달 -->
+    <div id="confirm-modal" class="fixed inset-0 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm mx-4">
+            <h3 class="text-lg font-bold mb-4">삭제 확인</h3>
+            <p id="confirm-modal-body" class="mb-6">정말로 이 항목을 삭제하시겠습니까?</p>
+            <div class="flex justify-end gap-4">
+                <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition">취소</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">삭제</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 결과 모달 -->
+    <div id="results-modal" class="fixed inset-0 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4 flex flex-col" style="height: 90vh; max-height: 700px;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="results-modal-title" class="text-xl font-bold">투표 결과</h3>
+                <button id="results-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="results-modal-body" class="overflow-y-auto custom-scrollbar flex-grow pr-2">
+                <!-- 결과 내용이 여기에 삽입됩니다. -->
+            </div>
+            <div class="mt-4 pt-4 border-t flex justify-end">
+                <button id="results-modal-footer-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-row flex-nowrap items-start justify-center gap-8">
+        <!-- 후보 관리 패널 -->
+        <div class="management-panel bg-white p-6 rounded-lg shadow-lg flex flex-col">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">선거 관리</h2>
+            
+            <div class="mb-4">
+                <label for="election-type" class="block text-sm font-medium text-gray-700 mb-1">선거 유형 선택</label>
+                <select id="election-type" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="presidente">대통령 선거</option>
+                    <option value="senador">상원의원 선거</option>
+                    <option value="deputado">하원의원 선거</option>
+                </select>
+            </div>
+
+            <div class="mb-4 flex-grow flex flex-col">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">후보 목록</h3>
+                <div id="candidate-list" class="flex-grow overflow-y-auto bg-gray-50 p-2 border rounded-md custom-scrollbar">
+                    <!-- JS가 후보 목록을 여기에 생성합니다. -->
+                </div>
+            </div>
+
+            <div class="mb-4 space-y-2">
+                <button id="show-results-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition">투표 결과 보기</button>
+                <button id="reset-votes-btn" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-md hover:bg-red-700 transition">모든 투표 초기화</button>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">새 후보 추가</h3>
+                <form id="add-candidate-form">
+                    <div id="drop-zone" class="p-3 rounded-md space-y-2">
+                        <input type="text" id="candidate-name-input" placeholder="이름" class="w-full p-2 border rounded-md" required>
+                        <input type="text" id="candidate-party-input" placeholder="정당" class="w-full p-2 border rounded-md" required>
+                        <input type="text" id="candidate-number-input" placeholder="번호" class="w-full p-2 border rounded-md" required>
+                        <input type="file" id="candidate-photo-input" class="w-full text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept="image/*">
+                        <div class="flex items-center justify-center">
+                           <img id="photo-preview" class="hidden w-16 h-16 object-cover mt-1 rounded-md border">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition mt-1">후보 추가</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 투표 기계 -->
+        <div class="urna-body flex p-6 gap-6">
+            <!-- 화면 (Screen) -->
+            <div id="screen" class="tela w-3/5 h-full flex flex-col justify-between p-4 relative">
+                <div id="main-content">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xl font-bold">SEU VOTO PARA</p>
+                            <h1 id="office-title" class="text-3xl font-bold mt-4"></h1>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold">JUSTIÇA<br>ELEITORAL</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex items-center">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4">
+                                <span class="text-lg">Número:</span>
+                                <div id="number-inputs" class="flex gap-2"></div>
+                            </div>
+                            <div id="candidate-info" class="mt-4 text-lg hidden">
+                                <p><strong>Nome:</strong> <span id="candidate-name"></span></p>
+                                <p><strong>Partido:</strong> <span id="candidate-party"></span></p>
+                            </div>
+                            <div id="special-message" class="mt-8 text-2xl font-bold text-center hidden"></div>
+                        </div>
+
+                        <div id="candidate-photo-container" class="ml-4 flex-shrink-0">
+                            <img id="candidate-photo" src="https://placehold.co/120x140/d1d5db/d1d5db?text=." alt="Foto do Candidato" class="border-2 border-gray-700 w-[120px] h-[140px] object-cover bg-white">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="instructions" class="border-t-2 border-gray-600 pt-2 text-sm">
+                    <p>Aperte a Tecla:</p>
+                    <p><strong>VERDE</strong> para CONFIRMAR</p>
+                    <p><strong>LARANJA</strong> para CORRIGIR</p>
+                </div>
+
+                <div id="end-screen" class="fim-tela absolute inset-0 hidden flex-col items-center justify-center text-center">
+                    <h1 class="text-8xl font-bold text-gray-800">FIM</h1>
+                    <p class="text-lg mt-2">투표가 정상적으로 기록되었습니다.</p>
+                    <button onclick="restartVote()" class="mt-4 bg-gray-600 text-white font-bold py-2 px-6 rounded-md hover:bg-gray-700 transition">다음 투표 진행</button>
+                </div>
+            </div>
+
+            <!-- 키패드 (Keypad) -->
+            <div class="teclado w-2/5 h-full flex flex-col justify-between">
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="keypadClicked('1')" class="tecla h-16 rounded-md">1</button>
+                    <button onclick="keypadClicked('2')" class="tecla h-16 rounded-md">2</button>
+                    <button onclick="keypadClicked('3')" class="tecla h-16 rounded-md">3</button>
+                    <button onclick="keypadClicked('4')" class="tecla h-16 rounded-md">4</button>
+                    <button onclick="keypadClicked('5')" class="tecla h-16 rounded-md">5</button>
+                    <button onclick="keypadClicked('6')" class="tecla h-16 rounded-md">6</button>
+                    <button onclick="keypadClicked('7')" class="tecla h-16 rounded-md">7</button>
+                    <button onclick="keypadClicked('8')" class="tecla h-16 rounded-md">8</button>
+                    <button onclick="keypadClicked('9')" class="tecla h-16 rounded-md">9</button>
+                    <button onclick="keypadClicked('0')" class="tecla h-16 rounded-md col-start-2">0</button>
+                </div>
+                <div class="flex justify-between gap-3">
+                    <button onclick="brancoClicked()" class="tecla-branco w-1/3 h-14 rounded-md text-sm font-bold">BRANCO</button>
+                    <button onclick="corrigeClicked()" class="tecla-corrige w-1/3 h-14 rounded-md text-sm font-bold">CORRIGE</button>
+                    <button onclick="confirmaClicked()" class="tecla-confirma w-1/3 h-16 rounded-md text-sm font-bold">CONFIRMA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 오디오 설정 ---
+        let audioContext;
+        document.body.addEventListener('click', () => {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+
+        function playSound(type) {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            if (type === 'key') {
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.05);
+            } else if (type === 'confirm') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.4);
+            }
+        }
+
+        // --- 데이터 관리 ---
+        let elections = {
+            'presidente': {
+                title: 'PRESIDENTE', digits: 2,
+                candidates: {
+                    '13': { name: 'Santos Dumont', party: 'PAV', photo: 'https://placehold.co/120x140/c0c0c0/000?text=Dumont' },
+                    '17': { name: 'Vital Brazil', party: 'PSERP', photo: 'https://placehold.co/120x140/c0c0c0/000?text=Brazil' }
+                }
+            },
+            'senador': {
+                title: 'SENADOR', digits: 3,
+                candidates: {
+                    '455': { name: 'Tarsila do Amaral', party: 'PART', photo: 'https://placehold.co/120x140/c0c0c0/000?text=Tarsila' }
+                }
+            },
+            'deputado': {
+                title: 'DEPUTADO FEDERAL', digits: 4,
+                candidates: {
+                    '1234': { name: 'Machado de Assis', party: 'PBL', photo: 'https://placehold.co/120x140/c0c0c0/000?text=Machado' }
+                }
+            }
+        };
+
+        let voteCounts = {};
+        let currentElectionType = 'presidente';
+        let currentNumber = '';
+        let isBlankVote = false;
+        let actionToConfirm = null;
+
+        // --- DOM 요소 ---
+        const officeTitleEl = document.getElementById('office-title');
+        const numberInputsEl = document.getElementById('number-inputs');
+        const candidateInfoEl = document.getElementById('candidate-info');
+        const candidateNameEl = document.getElementById('candidate-name');
+        const candidatePartyEl = document.getElementById('candidate-party');
+        const candidatePhotoEl = document.getElementById('candidate-photo');
+        const instructionsEl = document.getElementById('instructions');
+        const specialMessageEl = document.getElementById('special-message');
+        const mainContentEl = document.getElementById('main-content');
+        const endScreenEl = document.getElementById('end-screen');
+        const electionTypeSelector = document.getElementById('election-type');
+        const candidateListEl = document.getElementById('candidate-list');
+        const addCandidateForm = document.getElementById('add-candidate-form');
+        const photoPreviewEl = document.getElementById('photo-preview');
+        const candidatePhotoInput = document.getElementById('candidate-photo-input');
+        const dropZone = document.getElementById('drop-zone');
+        
+        // Modal elements
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmModalBody = document.getElementById('confirm-modal-body');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const resultsModal = document.getElementById('results-modal');
+        const resultsModalTitle = document.getElementById('results-modal-title');
+        const resultsModalBody = document.getElementById('results-modal-body');
+        const resultsModalCloseBtn = document.getElementById('results-modal-close-btn');
+        const resultsModalFooterCloseBtn = document.getElementById('results-modal-footer-close-btn');
+        
+        // Button elements
+        const showResultsBtn = document.getElementById('show-results-btn');
+        const resetVotesBtn = document.getElementById('reset-votes-btn');
+
+        // --- 투표 집계 기능 ---
+        function initializeVoteCounts() {
+            voteCounts = {};
+            for (const type in elections) {
+                voteCounts[type] = {
+                    candidates: {},
+                    branco: 0,
+                    nulo: 0,
+                };
+            }
+        }
+        
+        // --- 모달 관리 ---
+        function showModal(type, context) {
+            modalBackdrop.classList.remove('hidden');
+            if (type === 'confirm') {
+                confirmModal.classList.remove('hidden');
+                confirmModal.classList.add('flex');
+                confirmModalBody.textContent = context.message;
+                actionToConfirm = context.action;
+            } else if (type === 'results') {
+                renderResults();
+                resultsModal.classList.remove('hidden');
+                resultsModal.classList.add('flex');
+            }
+        }
+        
+        function hideAllModals() {
+            modalBackdrop.classList.add('hidden');
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            resultsModal.classList.add('hidden');
+            resultsModal.classList.remove('flex');
+            actionToConfirm = null;
+        }
+
+        // --- 후보 관리 기능 ---
+        function renderCandidateList() {
+            candidateListEl.innerHTML = '';
+            const currentCandidates = elections[currentElectionType].candidates;
+            if (Object.keys(currentCandidates).length === 0) {
+                candidateListEl.innerHTML = '<p class="text-gray-500 text-sm">이 선거에는 후보가 없습니다.</p>';
+                return;
+            }
+            const sortedNumbers = Object.keys(currentCandidates).reverse();
+            for (const number of sortedNumbers) {
+                const candidate = currentCandidates[number];
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-1 bg-white rounded text-sm mb-1 shadow-sm';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <img src="${candidate.photo}" class="w-8 h-10 object-cover rounded-sm">
+                        <div>
+                            <span class="font-bold">${candidate.name}</span> (${candidate.party}) - ${number}
+                        </div>
+                    </div>
+                    <button onclick="handleDeleteCandidate('${number}')" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                `;
+                candidateListEl.appendChild(item);
+            }
+        }
+        
+        function handleElectionTypeChange() {
+            currentElectionType = electionTypeSelector.value;
+            renderCandidateList();
+            startStage();
+        }
+
+        function handleAddCandidate(event) {
+            event.preventDefault();
+            const name = document.getElementById('candidate-name-input').value.trim();
+            const party = document.getElementById('candidate-party-input').value.trim();
+            const number = document.getElementById('candidate-number-input').value.trim();
+            const photoFile = candidatePhotoInput.files[0];
+
+            if (!name || !party || !number) {
+                alert('이름, 정당, 번호를 모두 입력해야 합니다.');
+                return;
+            }
+
+            const expectedDigits = elections[currentElectionType].digits;
+            if (number.length !== expectedDigits || !/^\d+$/.test(number)) {
+                alert(`번호는 반드시 ${expectedDigits}자리 숫자여야 합니다.`);
+                return;
+            }
+            if (elections[currentElectionType].candidates[number]) {
+                alert('이미 사용 중인 번호입니다.');
+                return;
+            }
+
+            const saveCandidate = (photoData) => {
+                elections[currentElectionType].candidates[number] = { name, party, photo: photoData };
+                renderCandidateList();
+                addCandidateForm.reset();
+                photoPreviewEl.classList.add('hidden');
+            };
+
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => saveCandidate(e.target.result);
+                reader.readAsDataURL(photoFile);
+            } else {
+                const placeholderPhoto = `https://placehold.co/120x140/c0c0c0/000?text=${name.substring(0, 10)}`;
+                saveCandidate(placeholderPhoto);
+            }
+        }
+
+        function handleDeleteCandidate(number) {
+             const candidate = elections[currentElectionType].candidates[number];
+             showModal('confirm', {
+                 message: `정말로 후보 [${candidate.name} - ${number}]를 삭제하시겠습니까?`,
+                 action: () => {
+                    delete elections[currentElectionType].candidates[number];
+                    renderCandidateList();
+                 }
+             })
+        }
+
+        function updatePhotoPreview(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photoPreviewEl.src = e.target.result;
+                    photoPreviewEl.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function handleResetVotes() {
+            showModal('confirm', {
+                message: '모든 선거의 투표 기록을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+                action: () => {
+                    initializeVoteCounts();
+                    alert('모든 투표 기록이 초기화되었습니다.');
+                }
+            });
+        }
+
+        // --- 결과 렌더링 ---
+        function renderResults() {
+            const electionData = elections[currentElectionType];
+            const electionVotes = voteCounts[currentElectionType];
+            resultsModalTitle.textContent = `${electionData.title} 투표 결과`;
+
+            const results = [];
+            for (const number in electionData.candidates) {
+                const candidate = electionData.candidates[number];
+                const votes = electionVotes.candidates[number] || 0;
+                results.push({ ...candidate, number, votes });
+            }
+            
+            const totalCandidateVotes = results.reduce((sum, c) => sum + c.votes, 0);
+            const totalVotes = totalCandidateVotes + electionVotes.branco + electionVotes.nulo;
+            
+            results.sort((a, b) => b.votes - a.votes);
+
+            let html = `<div class="space-y-3">`;
+            if (totalVotes === 0) {
+                html += '<p class="text-center text-gray-600 py-8">아직 투표 기록이 없습니다.</p>';
+            } else {
+                 results.forEach(candidate => {
+                    const percentage = totalVotes > 0 ? ((candidate.votes / totalVotes) * 100).toFixed(2) : 0;
+                    html += `
+                        <div class="flex items-center bg-gray-100 p-2 rounded-lg">
+                            <img src="${candidate.photo}" class="w-12 h-16 object-cover rounded-md mr-4">
+                            <div class="flex-grow">
+                                <p class="font-bold text-lg">${candidate.name} (${candidate.party})</p>
+                                <p class="text-sm text-gray-600">기호 ${candidate.number}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-xl">${candidate.votes} 표</p>
+                                <p class="text-gray-700">${percentage}%</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                const brancoPercentage = totalVotes > 0 ? ((electionVotes.branco / totalVotes) * 100).toFixed(2) : 0;
+                const nuloPercentage = totalVotes > 0 ? ((electionVotes.nulo / totalVotes) * 100).toFixed(2) : 0;
+                
+                html += `
+                    <div class="border-t pt-3 mt-3 space-y-2">
+                        <div class="flex justify-between items-center text-lg"><span>기권 (Branco):</span> <span class="font-bold">${electionVotes.branco} 표 (${brancoPercentage}%)</span></div>
+                        <div class="flex justify-between items-center text-lg"><span>무효 (Nulo):</span> <span class="font-bold">${electionVotes.nulo} 표 (${nuloPercentage}%)</span></div>
+                        <div class="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>총계:</span> <span>${totalVotes} 표</span></div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            resultsModalBody.innerHTML = html;
+        }
+
+        // --- 투표 기계 기능 ---
+        function startStage() {
+            let stage = elections[currentElectionType];
+            officeTitleEl.innerHTML = stage.title;
+            currentNumber = '';
+            isBlankVote = false;
+            numberInputsEl.innerHTML = '';
+            for (let i = 0; i < stage.digits; i++) {
+                const box = document.createElement('div');
+                box.className = 'numero-input flex items-center justify-center text-3xl bg-white';
+                numberInputsEl.appendChild(box);
+            }
+            updateInterface();
+        }
+
+        function restartVote() {
+            endScreenEl.classList.add('hidden');
+            endScreenEl.classList.remove('flex');
+            mainContentEl.classList.remove('hidden');
+            instructionsEl.classList.remove('hidden');
+            startStage();
+        }
+
+        function updateInterface() {
+            let stage = elections[currentElectionType];
+            let candidate = elections[currentElectionType].candidates[currentNumber];
+            let numberBoxes = numberInputsEl.querySelectorAll('div');
+
+            for(let i=0; i<numberBoxes.length; i++) numberBoxes[i].textContent = currentNumber[i] || '';
+
+            candidateInfoEl.classList.add('hidden');
+            candidatePhotoEl.src = 'https://placehold.co/120x140/d1d5db/d1d5db?text=.';
+            specialMessageEl.classList.add('hidden');
+            instructionsEl.classList.remove('hidden');
+
+            if (isBlankVote) {
+                 specialMessageEl.innerHTML = 'VOTO EM BRANCO';
+                 specialMessageEl.classList.remove('hidden');
+            } else if (currentNumber.length === stage.digits) {
+                if (candidate) {
+                    candidateInfoEl.classList.remove('hidden');
+                    candidateNameEl.textContent = candidate.name;
+                    candidatePartyEl.textContent = candidate.party;
+                    candidatePhotoEl.src = candidate.photo;
+                } else {
+                    specialMessageEl.innerHTML = 'NÚMERO ERRADO<br><span class="text-3xl font-bold">VOTO NULO</span>';
+                    specialMessageEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        function keypadClicked(num) {
+            let stage = elections[currentElectionType];
+            if (currentNumber.length < stage.digits && !isBlankVote) {
+                currentNumber += num;
+                playSound('key');
+                updateInterface();
+            }
+        }
+
+        function brancoClicked() {
+            if(currentNumber === '') {
+                isBlankVote = true;
+                playSound('key');
+                updateInterface();
+            }
+        }
+
+        function corrigeClicked() {
+            playSound('key');
+            startStage();
+        }
+
+        function confirmaClicked() {
+            const stage = elections[currentElectionType];
+            const votes = voteCounts[currentElectionType];
+            let voteCasted = false;
+            
+            if (isBlankVote) {
+                votes.branco++;
+                voteCasted = true;
+            } else if (currentNumber.length === stage.digits) {
+                if (elections[currentElectionType].candidates[currentNumber]) {
+                    if (!votes.candidates[currentNumber]) {
+                        votes.candidates[currentNumber] = 0;
+                    }
+                    votes.candidates[currentNumber]++;
+                } else {
+                    votes.nulo++;
+                }
+                voteCasted = true;
+            }
+            
+            if (!voteCasted) {
+                return; // 투표 미완료 상태에서는 아무것도 하지 않음
+            }
+
+            playSound('confirm');
+            mainContentEl.classList.add('hidden');
+            instructionsEl.classList.add('hidden');
+            endScreenEl.classList.remove('hidden');
+            endScreenEl.classList.add('flex');
+        }
+
+        // --- 초기화 및 이벤트 리스너 ---
+        window.onload = () => {
+            initializeVoteCounts();
+            electionTypeSelector.addEventListener('change', handleElectionTypeChange);
+            addCandidateForm.addEventListener('submit', handleAddCandidate);
+            candidatePhotoInput.addEventListener('change', (e) => updatePhotoPreview(e.target.files[0]));
+            
+            // Modal listeners
+            modalCancelBtn.addEventListener('click', hideAllModals);
+            modalConfirmBtn.addEventListener('click', () => {
+                if (typeof actionToConfirm === 'function') {
+                    actionToConfirm();
+                }
+                hideAllModals();
+            });
+            resultsModalCloseBtn.addEventListener('click', hideAllModals);
+            resultsModalFooterCloseBtn.addEventListener('click', hideAllModals);
+            modalBackdrop.addEventListener('click', hideAllModals);
+
+            // Button listeners
+            showResultsBtn.addEventListener('click', () => showModal('results'));
+            resetVotesBtn.addEventListener('click', handleResetVotes);
+
+            // Drag and Drop Events
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    candidatePhotoInput.files = files;
+                    updatePhotoPreview(files[0]);
+                }
+            });
+
+            handleElectionTypeChange();
+        };
+    </script>
+</body>
+</html>
+
