@@ -49,11 +49,26 @@
             background-color: #d1d5db;
             border: 5px solid #a1a1aa;
         }
-        .numero-input {
-            border: 2px solid #333;
+        
+        /* 실제 사진과 똑같이 테두리를 강조한 숫자 사각형 입력칸 */
+        .numero-input-box {
+            border: 2px solid #000000;
+            background-color: #ffffff;
             font-family: 'Roboto Mono', monospace;
             font-weight: 700;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
         }
+        
+        /* 현재 입력 중인 칸 깜빡임 효과 */
+        .numero-input-active {
+            border: 3px solid #1d4ed8 !important;
+            animation: focus-blink 1s infinite;
+        }
+        @keyframes focus-blink {
+            0%, 100% { border-color: #1d4ed8; }
+            50% { border-color: #71717a; }
+        }
+
         .fim-tela {
              background-color: #d1d5db;
         }
@@ -73,18 +88,18 @@
         }
         /* 고급 스크롤바 스타일링 */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #cbd5e1;
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #94a3b8;
         }
         .photo-box {
             border: 2px solid #333;
@@ -236,10 +251,11 @@
                 </select>
             </div>
 
-            <div class="mb-4 flex-grow flex flex-col min-h-[150px] lg:min-h-0">
+            <!-- 후보 목록창 개선 (답답한 고정 해제 및 max-height 스크롤 적용) -->
+            <div class="mb-4 flex-grow flex flex-col min-h-[120px]">
                 <h3 class="text-base font-semibold mb-1 text-gray-700">후보 목록</h3>
-                <div id="candidate-list" class="flex-grow overflow-y-auto bg-gray-50 p-2 border rounded-md custom-scrollbar max-h-[160px] lg:max-h-none text-sm">
-                    <!-- JS가 후보 목록을 생성합니다. -->
+                <div id="candidate-list" class="flex-grow overflow-y-auto bg-gray-50 p-2 border rounded-md custom-scrollbar max-h-[180px] text-sm space-y-1">
+                    <!-- JS가 후보 목록을 여기에 실시간 생성합니다. -->
                 </div>
             </div>
             
@@ -256,32 +272,43 @@
 
             <div class="border-t pt-3">
                 <h3 class="text-base font-semibold mb-2 text-gray-700">새 후보 추가</h3>
-                <form id="add-candidate-form" class="space-y-2 text-sm">
+                <form id="add-candidate-form" class="space-y-2.5 text-sm">
                     <div class="grid grid-cols-3 gap-1">
-                        <input type="text" id="candidate-name-input" placeholder="이름" class="p-2 border rounded-md col-span-1" required>
-                        <input type="text" id="candidate-party-input" placeholder="정당" class="p-2 border rounded-md col-span-1" required>
-                        <input type="text" id="candidate-number-input" placeholder="번호" class="p-2 border rounded-md col-span-1" required>
+                        <input type="text" id="candidate-name-input" placeholder="이름" class="p-2 border rounded-md col-span-1 text-xs" required>
+                        <input type="text" id="candidate-party-input" placeholder="정당" class="p-2 border rounded-md col-span-1 text-xs" required>
+                        <input type="text" id="candidate-number-input" placeholder="번호" class="p-2 border rounded-md col-span-1 text-xs" required>
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div id="president-drop-zone" class="drop-zone p-2 text-center rounded-md border bg-gray-50 flex flex-col justify-center items-center min-h-[60px]">
-                            <label for="candidate-photo-input" class="text-xs text-gray-500 cursor-pointer block">후보 사진 (선택/드래그)</label>
+                        <!-- 대통령 및 하원/상원 후보 이미지 등록 영역 (파일/링크 통합) -->
+                        <div id="president-drop-zone" class="drop-zone p-2 text-center rounded-md border bg-gray-50 flex flex-col justify-center items-center min-h-[70px]">
+                            <label for="candidate-photo-input" class="text-[11px] text-gray-500 cursor-pointer block font-semibold">사진 첨부 (클릭/드래그)</label>
                             <input type="file" id="candidate-photo-input" class="hidden" accept="image/*">
-                            <img id="photo-preview" class="hidden w-12 h-12 object-cover mt-1 rounded border">
+                            <img id="photo-preview" class="hidden w-10 h-10 object-cover mt-1 rounded border">
+                            
+                            <span class="text-[9px] text-gray-400 my-0.5 block">— OR —</span>
+                            <input type="text" id="candidate-photo-url-input" placeholder="이미지 주소(URL)" 
+                                   class="w-full p-1 text-[10px] border rounded bg-white text-gray-700 focus:outline-none" 
+                                   onclick="event.stopPropagation();">
                         </div>
                         
-                        <!-- 부통령 입력 필드 (대통령 선거 선택 시 자동 노출) -->
+                        <!-- 부통령 이미지 등록 영역 (대통령 선거 선택 시에만 보임) -->
                         <div id="vice-president-fields" class="hidden p-2 border rounded-md bg-gray-50 space-y-1">
                              <input type="text" id="vice-candidate-name-input" placeholder="부통령 이름" class="w-full p-1 border rounded text-xs">
-                             <div id="vice-president-drop-zone" class="drop-zone p-1 text-center border-dashed border rounded flex flex-col justify-center items-center min-h-[45px]">
-                                <label for="vice-candidate-photo-input" class="text-[10px] text-gray-500 cursor-pointer block">부통령 사진</label>
+                             <div id="vice-president-drop-zone" class="drop-zone p-1 text-center border-dashed border rounded flex flex-col justify-center items-center min-h-[50px]">
+                                <label for="vice-candidate-photo-input" class="text-[10px] text-gray-500 cursor-pointer block font-semibold">부통령 사진 첨부</label>
                                 <input type="file" id="vice-candidate-photo-input" class="hidden" accept="image/*">
-                                <img id="vice-photo-preview" class="hidden w-10 h-10 object-cover mt-1 rounded border">
+                                <img id="vice-photo-preview" class="hidden w-8 h-8 object-cover mt-1 rounded border">
+                                
+                                <span class="text-[9px] text-gray-400 my-0.5 block">— OR —</span>
+                                <input type="text" id="vice-candidate-photo-url-input" placeholder="부통령 이미지 URL" 
+                                       class="w-full p-1 text-[10px] border rounded bg-white text-gray-700 focus:outline-none" 
+                                       onclick="event.stopPropagation();">
                              </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition mt-1">후보 추가</button>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-md hover:bg-indigo-700 transition mt-1 text-xs">후보 추가</button>
                 </form>
             </div>
         </div>
@@ -309,11 +336,27 @@
                 oscillator.start();
                 oscillator.stop(audioContext.currentTime + 0.05);
             } else if (type === 'confirm') {
+                // 브라질 오리지널 사운드 효과
+                const duration = 0.5;
+                const osc2 = audioContext.createOscillator();
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
+                osc2.type = 'sine';
+                
+                oscillator.frequency.setValueAtTime(1250, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime + 0.2);
+                
+                osc2.frequency.setValueAtTime(1253, audioContext.currentTime);
+                osc2.frequency.setValueAtTime(1503, audioContext.currentTime + 0.2);
+                
                 gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                
+                osc2.connect(gainNode);
+                osc2.start();
+                osc2.stop(audioContext.currentTime + duration);
+                
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.4);
+                oscillator.stop(audioContext.currentTime + duration);
             }
         }
 
@@ -364,10 +407,15 @@
         const electionTypeSelector = document.getElementById('election-type');
         const candidateListEl = document.getElementById('candidate-list');
         const addCandidateForm = document.getElementById('add-candidate-form');
+        
         const photoPreviewEl = document.getElementById('photo-preview');
         const candidatePhotoInput = document.getElementById('candidate-photo-input');
+        const candidatePhotoUrlInput = document.getElementById('candidate-photo-url-input');
+        
         const vicePhotoPreviewEl = document.getElementById('vice-photo-preview');
         const viceCandidatePhotoInput = document.getElementById('vice-candidate-photo-input');
+        const viceCandidatePhotoUrlInput = document.getElementById('vice-candidate-photo-url-input');
+        
         const vicePresidentFields = document.getElementById('vice-president-fields');
         const presidentDropZone = document.getElementById('president-drop-zone');
         const vicePresidentDropZone = document.getElementById('vice-president-drop-zone');
@@ -439,10 +487,10 @@
                 const candidate = currentCandidates[number];
                 const viceInfo = candidate.viceName ? `<br><span class="text-[10px] text-gray-500">부통령: ${candidate.viceName}</span>` : '';
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center p-1.5 bg-white rounded text-xs mb-1 shadow-sm';
+                item.className = 'flex justify-between items-center p-1.5 bg-white rounded text-xs mb-1 border border-gray-100 shadow-sm';
                 item.innerHTML = `
                     <div class="flex items-center gap-2 overflow-hidden mr-2">
-                        <img src="${candidate.photo}" class="w-6 h-8 object-cover rounded-sm flex-shrink-0 bg-gray-100">
+                        <img src="${candidate.photo}" class="w-6 h-8 object-cover rounded-sm flex-shrink-0 bg-gray-100" onerror="this.src='https://placehold.co/80x100/d1d5db/333?text=Photo'">
                         <div class="truncate">
                             <span class="font-bold text-gray-800">${candidate.name}</span> (${candidate.party}) - <span class="font-semibold text-indigo-600">${number}</span>
                             ${viceInfo}
@@ -473,7 +521,9 @@
             const name = document.getElementById('candidate-name-input').value.trim();
             const party = document.getElementById('candidate-party-input').value.trim();
             const number = document.getElementById('candidate-number-input').value.trim();
+            
             const photoFile = candidatePhotoInput.files[0];
+            const photoUrl = candidatePhotoUrlInput.value.trim();
 
             if (!name || !party || !number) {
                 alert('모든 입력 칸을 올바르게 채워주세요.');
@@ -503,20 +553,41 @@
                 });
             };
 
-            const photoData = await readFileAsDataURL(photoFile) || `https://placehold.co/120x140/c0c0c0/000?text=${name.substring(0,10)}`;
+            // 사진 입력 결정 순서: 1) 첨부한 파일 2) 직접 입력한 이미지 링크 3) 플레이스홀더
+            let photoData = null;
+            if (photoFile) {
+                photoData = await readFileAsDataURL(photoFile);
+            } else if (photoUrl) {
+                photoData = photoUrl;
+            } else {
+                photoData = `https://placehold.co/120x140/c0c0c0/000?text=${name.substring(0,10)}`;
+            }
+
             const newCandidate = { name, party, photo: photoData };
 
             if (currentElectionType === 'presidente') {
                 const viceName = document.getElementById('vice-candidate-name-input').value.trim();
                 const vicePhotoFile = viceCandidatePhotoInput.files[0];
+                const vicePhotoUrl = viceCandidatePhotoUrlInput.value.trim();
+                
                 if (viceName) {
+                    let vicePhotoData = null;
+                    if (vicePhotoFile) {
+                        vicePhotoData = await readFileAsDataURL(vicePhotoFile);
+                    } else if (vicePhotoUrl) {
+                        vicePhotoData = vicePhotoUrl;
+                    } else {
+                        vicePhotoData = `https://placehold.co/100x120/c0c0c0/000?text=${viceName.substring(0,10)}`;
+                    }
                     newCandidate.viceName = viceName;
-                    newCandidate.vicePhoto = await readFileAsDataURL(vicePhotoFile) || `https://placehold.co/100x120/c0c0c0/000?text=${viceName.substring(0,10)}`;
+                    newCandidate.vicePhoto = vicePhotoData;
                 }
             }
 
             elections[currentElectionType].candidates[number] = newCandidate;
             renderCandidateList();
+            
+            // 입력 양식 초기화
             addCandidateForm.reset();
             photoPreviewEl.classList.add('hidden');
             photoPreviewEl.src = '';
@@ -526,7 +597,6 @@
             viceCandidatePhotoInput.value = '';
         }
 
-        // 특정 후보 지우기
         function handleDeleteCandidate(number) {
              const candidate = elections[currentElectionType].candidates[number];
              showModal('confirm', {
@@ -630,7 +700,7 @@
                     const viceInfo = candidate.viceName ? `<p class="text-xs text-gray-500">부통령: ${candidate.viceName}</p>` : '';
                     html += `
                         <div class="flex items-center bg-gray-100 p-2 rounded-lg">
-                            <img src="${candidate.photo}" class="w-10 h-14 object-cover rounded mr-3 bg-gray-200">
+                            <img src="${candidate.photo}" class="w-10 h-14 object-cover rounded mr-3 bg-gray-200" onerror="this.src='https://placehold.co/80x100/d1d5db/333?text=Photo'">
                             <div class="flex-grow min-w-0">
                                 <p class="font-bold truncate text-gray-800">${candidate.name} (${candidate.party})</p>
                                 <p class="text-xs text-indigo-600">기호: ${candidate.number}</p>
@@ -667,10 +737,12 @@
             isBlankVote = false;
             numberInputsEl.innerHTML = '';
             
-            // 반응형 크기의 자릿수 상자 생성
+            // 보내주신 이미지처럼 기호 자릿수에 맞춰서 개별 격자 칸 생성 및 미입력 상태 별표(*) 세팅
             for (let i = 0; i < stage.digits; i++) {
                 const box = document.createElement('div');
-                box.className = 'numero-input w-8 h-10 sm:w-10 sm:h-12 flex items-center justify-center text-xl sm:text-2xl lg:text-3xl bg-white font-bold rounded shadow-sm';
+                box.className = 'numero-input-box w-8 h-10 sm:w-10 sm:h-12 flex items-center justify-center text-xl sm:text-2xl lg:text-3xl bg-white font-bold rounded shadow-sm';
+                box.textContent = '*'; // 이미지와 동일하게 최초에 별표 표시
+                box.style.color = '#a1a1aa'; // 연한 회색 적용
                 numberInputsEl.appendChild(box);
             }
             updateInterface();
@@ -687,10 +759,23 @@
         function updateInterface() {
             let stage = elections[currentElectionType];
             let candidate = elections[currentElectionType].candidates[currentNumber];
-            let numberBoxes = numberInputsEl.querySelectorAll('div');
+            let numberBoxes = numberInputsEl.querySelectorAll('.numero-input-box');
 
+            // 자릿수 채우기 및 포커스 클래스 부여
             for(let i=0; i<numberBoxes.length; i++) {
-                numberBoxes[i].textContent = currentNumber[i] || '';
+                if (currentNumber[i]) {
+                    numberBoxes[i].textContent = currentNumber[i];
+                    numberBoxes[i].style.color = '#000000'; // 선명한 검은색
+                } else {
+                    numberBoxes[i].textContent = '*';
+                    numberBoxes[i].style.color = '#a1a1aa';
+                }
+                numberBoxes[i].classList.remove('numero-input-active');
+            }
+            
+            // 다음 입력 대상 자릿수 활성화 테두리 애니메이션 연출
+            if (currentNumber.length < stage.digits && !isBlankVote) {
+                numberBoxes[currentNumber.length].classList.add('numero-input-active');
             }
             
             const placeholderImg = 'https://placehold.co/120x140/d1d5db/d1d5db?text=.';
@@ -715,14 +800,21 @@
                     candidatePartyEl.textContent = candidate.party;
                     candidatePhotoEl.src = candidate.photo;
                     
+                    candidatePhotoEl.onerror = function() {
+                        this.src = "https://placehold.co/120x140/d1d5db/333?text=Erro";
+                    };
+                    
                     if (currentElectionType === 'presidente' && candidate.viceName) {
                         viceCandidateInfoEl.classList.remove('hidden');
                         viceCandidateNameEl.textContent = candidate.viceName;
                         vicePresidentPhotoBoxEl.classList.remove('hidden');
                         viceCandidatePhotoEl.src = candidate.vicePhoto;
+                        viceCandidatePhotoEl.onerror = function() {
+                            this.src = "https://placehold.co/100x120/d1d5db/333?text=Erro";
+                        };
                     }
                 } else {
-                    specialMessageEl.innerHTML = 'NÚMERO ERRADO<br><span class="text-lg sm:text-xl font-bold">VOTO NULO</span>';
+                    specialMessageEl.innerHTML = 'NÚMERO ERRADO<br><span class="text-lg sm:text-xl font-bold text-red-600">VOTO NULO</span>';
                     specialMessageEl.classList.remove('hidden');
                 }
             }
@@ -802,14 +894,39 @@
             resultsModalFooterCloseBtn.addEventListener('click', hideAllModals);
             modalBackdrop.addEventListener('click', hideAllModals);
 
-            // 터치와 마우스 환경 통합 드래그앤드롭 모듈화
-            const setupDropZone = (dropZone, fileInput, previewEl) => {
-                dropZone.addEventListener('click', () => fileInput.click());
+            // 터치와 마우스 환경 통합 드래그앤드롭 및 URL 입력 통합 바인딩
+            const setupDropZone = (dropZone, fileInput, previewEl, urlInput) => {
+                // 인풋 클릭 전파 차단
+                dropZone.addEventListener('click', (e) => {
+                    if (e.target !== urlInput) {
+                        fileInput.click();
+                    }
+                });
+
                 fileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
+                        urlInput.value = ''; // 파일을 올렸을 때는 주소 입력을 우선적으로 초기화
                         updatePhotoPreview(e.target.files[0], previewEl);
                     }
                 });
+
+                // URL 텍스트 주소 직접 실시간 입력 이벤트 지원
+                urlInput.addEventListener('input', (e) => {
+                    const value = e.target.value.trim();
+                    if (value) {
+                        fileInput.value = '';
+                        previewEl.src = value;
+                        previewEl.classList.remove('hidden');
+                        previewEl.onerror = () => {
+                            previewEl.src = 'https://placehold.co/120x140/d1d5db/333?text=Erro+Link';
+                        };
+                    } else {
+                        previewEl.classList.add('hidden');
+                        previewEl.src = '';
+                    }
+                });
+
+                // 드래그앤드롭 연동
                 dropZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     dropZone.classList.add('dragover');
@@ -821,14 +938,15 @@
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
                     if (e.dataTransfer.files.length > 0) {
+                        urlInput.value = '';
                         fileInput.files = e.dataTransfer.files;
                         updatePhotoPreview(fileInput.files[0], previewEl);
                     }
                 });
             };
 
-            setupDropZone(presidentDropZone, candidatePhotoInput, photoPreviewEl);
-            setupDropZone(vicePresidentDropZone, viceCandidatePhotoInput, vicePhotoPreviewEl);
+            setupDropZone(presidentDropZone, candidatePhotoInput, photoPreviewEl, candidatePhotoUrlInput);
+            setupDropZone(vicePresidentDropZone, viceCandidatePhotoInput, vicePhotoPreviewEl, viceCandidatePhotoUrlInput);
 
             handleElectionTypeChange();
         };
