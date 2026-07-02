@@ -12,9 +12,10 @@
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
         }
+        /* 반응형 투표기 본체: 모바일은 유동적, 데스크톱은 기존 규격 보존 */
         .urna-body {
-            width: 800px;
-            height: 600px; 
+            width: 100%;
+            max-width: 800px;
             background-color: #e0e0e0;
             border: 2px solid #333;
             border-radius: 10px;
@@ -23,13 +24,11 @@
         .teclado {
             background-color: #3d3d3d;
             border-radius: 8px;
-            padding: 25px;
             box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
         }
         .tecla {
             background-color: #282828;
             color: white;
-            font-size: 24px;
             font-weight: bold;
             border: 1px solid #1a1a1a;
             box-shadow: 0 4px #1a1a1a;
@@ -52,17 +51,16 @@
         }
         .numero-input {
             border: 2px solid #333;
-            width: 40px;
-            height: 50px;
             font-family: 'Roboto Mono', monospace;
             font-weight: 700;
         }
         .fim-tela {
              background-color: #d1d5db;
         }
+        /* 반응형 관리 패널 */
         .management-panel {
-            width: 400px;
-            height: 600px;
+            width: 100%;
+            max-width: 400px;
         }
         .drop-zone {
             border: 2px dashed #cbd5e1;
@@ -73,7 +71,7 @@
             background-color: #e0e7ff;
             border-color: #818cf8;
         }
-        /* 스크롤바 스타일링 */
+        /* 고급 스크롤바 스타일링 */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
@@ -104,7 +102,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-300 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-300 flex items-center justify-center min-h-screen p-2 sm:p-4">
 
     <!-- 모달 백드롭 -->
     <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
@@ -123,13 +121,13 @@
     
     <!-- 결과 모달 -->
     <div id="results-modal" class="fixed inset-0 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4 flex flex-col" style="height: 90vh; max-height: 700px;">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4 flex flex-col" style="height: 85vh; max-height: 700px;">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="results-modal-title" class="text-xl font-bold">투표 결과</h3>
                 <button id="results-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
             </div>
             <div id="results-modal-body" class="overflow-y-auto custom-scrollbar flex-grow pr-2">
-                <!-- 결과 내용이 여기에 삽입됩니다. -->
+                <!-- 결과 내용 삽입 영역 -->
             </div>
             <div class="mt-4 pt-4 border-t flex justify-end">
                 <button id="results-modal-footer-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">닫기</button>
@@ -137,103 +135,48 @@
         </div>
     </div>
 
-    <div class="flex flex-row flex-nowrap items-start justify-center gap-8">
-        <!-- 후보 관리 패널 -->
-        <div class="management-panel bg-white p-6 rounded-lg shadow-lg flex flex-col">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">선거 관리</h2>
-            
-            <div class="mb-4">
-                <label for="election-type" class="block text-sm font-medium text-gray-700 mb-1">선거 유형 선택</label>
-                <select id="election-type" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="presidente">대통령 선거</option>
-                    <option value="senador">상원의원 선거</option>
-                    <option value="deputado">하원의원 선거</option>
-                </select>
-            </div>
-
-            <div class="mb-4 flex-grow flex flex-col">
-                <h3 class="text-lg font-semibold mb-2 text-gray-700">후보 목록</h3>
-                <div id="candidate-list" class="flex-grow overflow-y-auto bg-gray-50 p-2 border rounded-md custom-scrollbar">
-                    <!-- JS가 후보 목록을 여기에 생성합니다. -->
-                </div>
-            </div>
-            
-            <div class="mb-4 space-y-2 border-t pt-4">
-                 <h3 class="text-lg font-semibold mb-2 text-gray-700">투표 관리</h3>
-                <button id="show-results-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition">투표 결과 보기</button>
-                <button id="reset-votes-btn" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-md hover:bg-red-700 transition">모든 투표 초기화</button>
-            </div>
-
-            <div class="mb-4 space-y-2 border-t pt-4">
-                <h3 class="text-lg font-semibold mb-2 text-gray-700">목록 관리</h3>
-                <button id="save-list-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition">후보 목록 파일로 저장</button>
-                <button id="load-list-btn" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-700 transition">파일에서 후보 목록 불러오기</button>
-                <input type="file" id="load-list-input" class="hidden" accept=".json">
-            </div>
-
-            <div>
-                <h3 class="text-lg font-semibold mb-2 text-gray-700 border-t pt-4">새 후보 추가</h3>
-                <form id="add-candidate-form" class="space-y-2">
-                    <input type="text" id="candidate-name-input" placeholder="이름" class="w-full p-2 border rounded-md" required>
-                    <input type="text" id="candidate-party-input" placeholder="정당" class="w-full p-2 border rounded-md" required>
-                    <input type="text" id="candidate-number-input" placeholder="번호" class="w-full p-2 border rounded-md" required>
-                    
-                    <div id="president-drop-zone" class="drop-zone p-2 text-center">
-                        <label for="candidate-photo-input" class="text-sm text-gray-500 cursor-pointer">후보 사진 (클릭 또는 드래그)</label>
-                        <input type="file" id="candidate-photo-input" class="hidden" accept="image/*">
-                        <img id="photo-preview" class="hidden w-16 h-16 object-cover mx-auto mt-1 rounded-md border">
-                    </div>
-                    
-                    <!-- 부통령 입력 필드 (초기에는 숨김) -->
-                    <div id="vice-president-fields" class="hidden space-y-2 pt-2 mt-2 border-t">
-                         <input type="text" id="vice-candidate-name-input" placeholder="부통령 이름" class="w-full p-2 border rounded-md">
-                         <div id="vice-president-drop-zone" class="drop-zone p-2 text-center">
-                            <label for="vice-candidate-photo-input" class="text-sm text-gray-500 cursor-pointer">부통령 사진 (클릭 또는 드래그)</label>
-                            <input type="file" id="vice-candidate-photo-input" class="hidden" accept="image/*">
-                            <img id="vice-photo-preview" class="hidden w-16 h-16 object-cover mx-auto mt-1 rounded-md border">
-                         </div>
-                    </div>
-
-                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition mt-1">후보 추가</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- 투표 기계 -->
-        <div class="urna-body flex p-6 gap-6">
-            <!-- 화면 (Screen) -->
-            <div id="screen" class="tela w-3/5 h-full flex flex-col justify-between p-4 relative">
-                <div id="main-content">
+    <!-- 전체 반응형 그리드 래퍼 -->
+    <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6 lg:gap-8 w-full max-w-6xl">
+        
+        <!-- 투표 기계 본체 -->
+        <div class="urna-body flex flex-col md:flex-row p-4 sm:p-6 gap-4 sm:gap-6 w-full h-auto md:h-[600px]">
+            <!-- 화면 영역 (Screen) -->
+            <div id="screen" class="tela w-full md:w-[58%] h-[320px] md:h-full flex flex-col justify-between p-3 sm:p-4 relative rounded">
+                <div id="main-content" class="w-full">
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-xl font-bold">SEU VOTO PARA</p>
-                            <h1 id="office-title" class="text-3xl font-bold mt-4"></h1>
+                            <p class="text-xs sm:text-sm font-bold text-gray-700">SEU VOTO PARA</p>
+                            <h1 id="office-title" class="text-xl sm:text-2xl lg:text-3xl font-bold mt-2 text-gray-800"></h1>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold">JUSTIÇA<br>ELEITORAL</p>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-[10px] sm:text-xs font-bold leading-tight text-gray-700">JUSTIÇA<br>ELEITORAL</p>
                         </div>
                     </div>
                     
-                    <div class="mt-8 flex items-start">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-4">
-                                <span class="text-lg">Número:</span>
-                                <div id="number-inputs" class="flex gap-2"></div>
+                    <div class="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-between gap-2 items-start">
+                        <!-- 후보 상세 내용 -->
+                        <div class="flex-grow space-y-2 w-full sm:w-auto">
+                            <div class="flex items-center gap-2 sm:gap-4">
+                                <span class="text-sm sm:text-base text-gray-700 font-bold">Número:</span>
+                                <div id="number-inputs" class="flex gap-1.5">
+                                    <!-- 입력 상자 자동 렌더링 -->
+                                </div>
                             </div>
-                            <div id="candidate-info" class="mt-4 text-base hidden">
-                                <p><strong>Nome:</strong> <span id="candidate-name"></span></p>
-                                <p><strong>Partido:</strong> <span id="candidate-party"></span></p>
-                                <p id="vice-candidate-info" class="hidden"><strong>Vice-presidente:</strong> <span id="vice-candidate-name"></span></p>
+                            <div id="candidate-info" class="mt-2 text-sm sm:text-base space-y-1 hidden">
+                                <p class="text-gray-800"><strong>Nome:</strong> <span id="candidate-name" class="font-bold"></span></p>
+                                <p class="text-gray-800"><strong>Partido:</strong> <span id="candidate-party" class="font-bold"></span></p>
+                                <p id="vice-candidate-info" class="hidden text-gray-800 text-xs sm:text-sm"><strong>Vice-Pres.:</strong> <span id="vice-candidate-name" class="font-semibold"></span></p>
                             </div>
-                            <div id="special-message" class="mt-8 text-2xl font-bold text-center hidden"></div>
+                            <div id="special-message" class="mt-4 text-xl sm:text-2xl font-bold text-center text-red-600 hidden"></div>
                         </div>
 
-                        <div id="candidate-photo-container" class="ml-4 flex-shrink-0 flex flex-col items-center gap-2">
-                            <div id="president-photo-box" class="photo-box w-[120px] h-[140px]">
+                        <!-- 후보 이미지 컨테이너 (모바일 가로 정렬, 데스크톱 세로 정렬) -->
+                        <div id="candidate-photo-container" class="flex flex-row sm:flex-col items-center gap-2 flex-shrink-0 self-center sm:self-start ml-auto sm:ml-2">
+                            <div id="president-photo-box" class="photo-box w-[80px] h-[100px] sm:w-[110px] sm:h-[130px] rounded shadow-sm overflow-hidden">
                                 <img id="candidate-photo" src="https://placehold.co/120x140/d1d5db/d1d5db?text=." alt="Foto do Candidato" class="w-full h-full object-cover">
                                 <span class="photo-label">Presidente</span>
                             </div>
-                            <div id="vice-president-photo-box" class="photo-box w-[100px] h-[120px] hidden">
+                            <div id="vice-president-photo-box" class="photo-box w-[65px] h-[80px] sm:w-[90px] sm:h-[110px] hidden rounded shadow-sm overflow-hidden">
                                 <img id="vice-candidate-photo" src="https://placehold.co/100x120/d1d5db/d1d5db?text=." alt="Foto do Vice" class="w-full h-full object-cover">
                                 <span class="photo-label">Vice-Pres.</span>
                             </div>
@@ -241,44 +184,112 @@
                     </div>
                 </div>
                 
-                <div id="instructions" class="border-t-2 border-gray-600 pt-2 text-sm">
+                <!-- 하단 투표 가이드 라인 -->
+                <div id="instructions" class="border-t border-gray-500 pt-2 text-[10px] sm:text-xs text-gray-700">
                     <p>Aperte a Tecla:</p>
                     <p><strong>VERDE</strong> para CONFIRMAR</p>
                     <p><strong>LARANJA</strong> para CORRIGIR</p>
                 </div>
 
-                <div id="end-screen" class="fim-tela absolute inset-0 hidden flex-col items-center justify-center text-center">
-                    <h1 class="text-8xl font-bold text-gray-800">FIM</h1>
-                    <p class="text-lg mt-2">투표가 정상적으로 기록되었습니다.</p>
-                    <button onclick="restartVote()" class="mt-4 bg-gray-600 text-white font-bold py-2 px-6 rounded-md hover:bg-gray-700 transition">다음 투표 진행</button>
+                <!-- 투표 완료 화면 (FIM) -->
+                <div id="end-screen" class="fim-tela absolute inset-0 hidden flex-col items-center justify-center text-center rounded">
+                    <h1 class="text-6xl sm:text-8xl font-bold text-gray-800 tracking-wider">FIM</h1>
+                    <p class="text-sm sm:text-base mt-2 font-semibold text-gray-700">Voto registrado com sucesso!</p>
+                    <button onclick="restartVote()" class="mt-4 bg-gray-700 text-white font-bold py-1.5 px-4 rounded hover:bg-gray-800 transition text-xs sm:text-sm shadow">다음 투표 진행 (Avançar)</button>
                 </div>
             </div>
 
-            <!-- 키패드 (Keypad) -->
-            <div class="teclado w-2/5 h-full flex flex-col justify-between">
-                <div class="grid grid-cols-3 gap-3">
-                    <button onclick="keypadClicked('1')" class="tecla h-16 rounded-md">1</button>
-                    <button onclick="keypadClicked('2')" class="tecla h-16 rounded-md">2</button>
-                    <button onclick="keypadClicked('3')" class="tecla h-16 rounded-md">3</button>
-                    <button onclick="keypadClicked('4')" class="tecla h-16 rounded-md">4</button>
-                    <button onclick="keypadClicked('5')" class="tecla h-16 rounded-md">5</button>
-                    <button onclick="keypadClicked('6')" class="tecla h-16 rounded-md">6</button>
-                    <button onclick="keypadClicked('7')" class="tecla h-16 rounded-md">7</button>
-                    <button onclick="keypadClicked('8')" class="tecla h-16 rounded-md">8</button>
-                    <button onclick="keypadClicked('9')" class="tecla h-16 rounded-md">9</button>
-                    <button onclick="keypadClicked('0')" class="tecla h-16 rounded-md col-start-2">0</button>
+            <!-- 키패드 영역 (Keypad) -->
+            <div class="teclado w-full md:w-[42%] flex flex-col justify-between p-4 sm:p-5 gap-4">
+                <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
+                    <button onclick="keypadClicked('1')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">1</button>
+                    <button onclick="keypadClicked('2')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">2</button>
+                    <button onclick="keypadClicked('3')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">3</button>
+                    <button onclick="keypadClicked('4')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">4</button>
+                    <button onclick="keypadClicked('5')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">5</button>
+                    <button onclick="keypadClicked('6')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">6</button>
+                    <button onclick="keypadClicked('7')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">7</button>
+                    <button onclick="keypadClicked('8')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">8</button>
+                    <button onclick="keypadClicked('9')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">9</button>
+                    <button onclick="keypadClicked('0')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow col-start-2">0</button>
                 </div>
-                <div class="flex justify-between gap-3">
-                    <button onclick="brancoClicked()" class="tecla-branco w-1/3 h-14 rounded-md text-sm font-bold">BRANCO</button>
-                    <button onclick="corrigeClicked()" class="tecla-corrige w-1/3 h-14 rounded-md text-sm font-bold">CORRIGE</button>
-                    <button onclick="confirmaClicked()" class="tecla-confirma w-1/3 h-16 rounded-md text-sm font-bold">CONFIRMA</button>
+                
+                <!-- 하단 행정/제어용 키패드 (BRANCO, CORRIGE, CONFIRMA) -->
+                <div class="flex justify-between gap-2 pt-2">
+                    <button onclick="brancoClicked()" class="tecla-branco w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">BRANCO</button>
+                    <button onclick="corrigeClicked()" class="tecla-corrige w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">CORRIGE</button>
+                    <button onclick="confirmaClicked()" class="tecla-confirma w-1/3 h-13 sm:h-15 rounded text-xs sm:text-sm font-bold shadow-md tracking-tighter">CONFIRMA</button>
                 </div>
             </div>
         </div>
+
+        <!-- 후보 관리 패널 -->
+        <div class="management-panel bg-white p-4 sm:p-6 rounded-lg shadow-lg flex flex-col h-auto lg:h-[600px] w-full">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">선거 관리</h2>
+            
+            <div class="mb-4">
+                <label for="election-type" class="block text-sm font-medium text-gray-700 mb-1">선거 유형 선택</label>
+                <select id="election-type" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <option value="presidente">대통령 선거</option>
+                    <option value="senador">상원의원 선거</option>
+                    <option value="deputado">하원의원 선거</option>
+                </select>
+            </div>
+
+            <div class="mb-4 flex-grow flex flex-col min-h-[150px] lg:min-h-0">
+                <h3 class="text-base font-semibold mb-1 text-gray-700">후보 목록</h3>
+                <div id="candidate-list" class="flex-grow overflow-y-auto bg-gray-50 p-2 border rounded-md custom-scrollbar max-h-[160px] lg:max-h-none text-sm">
+                    <!-- JS가 후보 목록을 생성합니다. -->
+                </div>
+            </div>
+            
+            <div class="mb-4 grid grid-cols-2 gap-2 border-t pt-3">
+                <button id="show-results-btn" class="bg-green-600 text-white font-bold py-2 px-2 rounded-md hover:bg-green-700 transition text-xs sm:text-sm">투표 결과 보기</button>
+                <button id="reset-votes-btn" class="bg-red-600 text-white font-bold py-2 px-2 rounded-md hover:bg-red-700 transition text-xs sm:text-sm">모든 투표 초기화</button>
+            </div>
+
+            <div class="mb-4 grid grid-cols-2 gap-2 border-t pt-3">
+                <button id="save-list-btn" class="bg-blue-600 text-white font-bold py-2 px-2 rounded-md hover:bg-blue-700 transition text-xs sm:text-sm">후보 파일 저장</button>
+                <button id="load-list-btn" class="bg-gray-600 text-white font-bold py-2 px-2 rounded-md hover:bg-gray-700 transition text-xs sm:text-sm">후보 파일 로드</button>
+                <input type="file" id="load-list-input" class="hidden" accept=".json">
+            </div>
+
+            <div class="border-t pt-3">
+                <h3 class="text-base font-semibold mb-2 text-gray-700">새 후보 추가</h3>
+                <form id="add-candidate-form" class="space-y-2 text-sm">
+                    <div class="grid grid-cols-3 gap-1">
+                        <input type="text" id="candidate-name-input" placeholder="이름" class="p-2 border rounded-md col-span-1" required>
+                        <input type="text" id="candidate-party-input" placeholder="정당" class="p-2 border rounded-md col-span-1" required>
+                        <input type="text" id="candidate-number-input" placeholder="번호" class="p-2 border rounded-md col-span-1" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div id="president-drop-zone" class="drop-zone p-2 text-center rounded-md border bg-gray-50 flex flex-col justify-center items-center min-h-[60px]">
+                            <label for="candidate-photo-input" class="text-xs text-gray-500 cursor-pointer block">후보 사진 (선택/드래그)</label>
+                            <input type="file" id="candidate-photo-input" class="hidden" accept="image/*">
+                            <img id="photo-preview" class="hidden w-12 h-12 object-cover mt-1 rounded border">
+                        </div>
+                        
+                        <!-- 부통령 입력 필드 (대통령 선거 선택 시 자동 노출) -->
+                        <div id="vice-president-fields" class="hidden p-2 border rounded-md bg-gray-50 space-y-1">
+                             <input type="text" id="vice-candidate-name-input" placeholder="부통령 이름" class="w-full p-1 border rounded text-xs">
+                             <div id="vice-president-drop-zone" class="drop-zone p-1 text-center border-dashed border rounded flex flex-col justify-center items-center min-h-[45px]">
+                                <label for="vice-candidate-photo-input" class="text-[10px] text-gray-500 cursor-pointer block">부통령 사진</label>
+                                <input type="file" id="vice-candidate-photo-input" class="hidden" accept="image/*">
+                                <img id="vice-photo-preview" class="hidden w-10 h-10 object-cover mt-1 rounded border">
+                             </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition mt-1">후보 추가</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // --- 오디오 설정 ---
+        // --- 오디오 노드 및 주파수 제어 ---
         let audioContext;
         document.body.addEventListener('click', () => {
             if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -306,7 +317,7 @@
             }
         }
 
-        // --- 데이터 관리 ---
+        // --- 선거 시스템 상태 값 ---
         let elections = {
             'presidente': {
                 title: 'PRESIDENTE', digits: 2,
@@ -335,7 +346,7 @@
         let isBlankVote = false;
         let actionToConfirm = null;
 
-        // --- DOM 요소 ---
+        // --- DOM 연결 ---
         const officeTitleEl = document.getElementById('office-title');
         const numberInputsEl = document.getElementById('number-inputs');
         const candidateInfoEl = document.getElementById('candidate-info');
@@ -361,7 +372,7 @@
         const presidentDropZone = document.getElementById('president-drop-zone');
         const vicePresidentDropZone = document.getElementById('vice-president-drop-zone');
         
-        // Modal elements
+        // 모달 및 제어 장치
         const modalBackdrop = document.getElementById('modal-backdrop');
         const confirmModal = document.getElementById('confirm-modal');
         const confirmModalBody = document.getElementById('confirm-modal-body');
@@ -373,15 +384,13 @@
         const resultsModalCloseBtn = document.getElementById('results-modal-close-btn');
         const resultsModalFooterCloseBtn = document.getElementById('results-modal-footer-close-btn');
         
-        // Button elements
         const showResultsBtn = document.getElementById('show-results-btn');
         const resetVotesBtn = document.getElementById('reset-votes-btn');
         const saveListBtn = document.getElementById('save-list-btn');
         const loadListBtn = document.getElementById('load-list-btn');
         const loadListInput = document.getElementById('load-list-input');
 
-
-        // --- 투표 집계 기능 ---
+        // --- 초기화 ---
         function initializeVoteCounts() {
             voteCounts = {};
             for (const type in elections) {
@@ -393,7 +402,7 @@
             }
         }
         
-        // --- 모달 관리 ---
+        // --- 맞춤 모달 시스템 ---
         function showModal(type, context) {
             modalBackdrop.classList.remove('hidden');
             if (type === 'confirm') {
@@ -417,29 +426,29 @@
             actionToConfirm = null;
         }
 
-        // --- 후보 관리 기능 ---
+        // --- 선거 관리 패널 가동부 ---
         function renderCandidateList() {
             candidateListEl.innerHTML = '';
             const currentCandidates = elections[currentElectionType].candidates;
             if (Object.keys(currentCandidates).length === 0) {
-                candidateListEl.innerHTML = '<p class="text-gray-500 text-sm">이 선거에는 후보가 없습니다.</p>';
+                candidateListEl.innerHTML = '<p class="text-gray-500 text-xs text-center py-2">등록된 후보가 없습니다.</p>';
                 return;
             }
             const sortedNumbers = Object.keys(currentCandidates).sort((a, b) => a.localeCompare(b));
             for (const number of sortedNumbers) {
                 const candidate = currentCandidates[number];
-                const viceInfo = candidate.viceName ? `<br><span class="text-xs text-gray-600">부통령: ${candidate.viceName}</span>` : '';
+                const viceInfo = candidate.viceName ? `<br><span class="text-[10px] text-gray-500">부통령: ${candidate.viceName}</span>` : '';
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center p-1 bg-white rounded text-sm mb-1 shadow-sm';
+                item.className = 'flex justify-between items-center p-1.5 bg-white rounded text-xs mb-1 shadow-sm';
                 item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <img src="${candidate.photo}" class="w-8 h-10 object-cover rounded-sm">
-                        <div>
-                            <span class="font-bold">${candidate.name}</span> (${candidate.party}) - ${number}
+                    <div class="flex items-center gap-2 overflow-hidden mr-2">
+                        <img src="${candidate.photo}" class="w-6 h-8 object-cover rounded-sm flex-shrink-0 bg-gray-100">
+                        <div class="truncate">
+                            <span class="font-bold text-gray-800">${candidate.name}</span> (${candidate.party}) - <span class="font-semibold text-indigo-600">${number}</span>
                             ${viceInfo}
                         </div>
                     </div>
-                    <button onclick="handleDeleteCandidate('${number}')" class="text-red-500 hover:text-red-700 font-bold text-lg px-2">&times;</button>
+                    <button onclick="handleDeleteCandidate('${number}')" class="text-red-500 hover:text-red-700 font-bold text-lg px-2 flex-shrink-0">&times;</button>
                 `;
                 candidateListEl.appendChild(item);
             }
@@ -450,10 +459,10 @@
             const presidentPhotoLabel = document.querySelector('#president-drop-zone label');
             if (currentElectionType === 'presidente') {
                 vicePresidentFields.classList.remove('hidden');
-                presidentPhotoLabel.textContent = '대통령 사진 (클릭 또는 드래그)';
+                presidentPhotoLabel.textContent = '대통령 사진 (클릭/드래그)';
             } else {
                 vicePresidentFields.classList.add('hidden');
-                presidentPhotoLabel.textContent = '후보 사진 (클릭 또는 드래그)';
+                presidentPhotoLabel.textContent = '후보 사진 (클릭/드래그)';
             }
             renderCandidateList();
             startStage();
@@ -467,17 +476,17 @@
             const photoFile = candidatePhotoInput.files[0];
 
             if (!name || !party || !number) {
-                alert('이름, 정당, 번호를 모두 입력해야 합니다.');
+                alert('모든 입력 칸을 올바르게 채워주세요.');
                 return;
             }
 
             const expectedDigits = elections[currentElectionType].digits;
             if (number.length !== expectedDigits || !/^\d+$/.test(number)) {
-                alert(`번호는 반드시 ${expectedDigits}자리 숫자여야 합니다.`);
+                alert(`기호는 반드시 ${expectedDigits}자리 숫자로 입력해야 합니다.`);
                 return;
             }
             if (elections[currentElectionType].candidates[number]) {
-                alert('이미 사용 중인 번호입니다.');
+                alert('해당 기호로 등록된 후보가 이미 존재합니다.');
                 return;
             }
 
@@ -495,7 +504,6 @@
             };
 
             const photoData = await readFileAsDataURL(photoFile) || `https://placehold.co/120x140/c0c0c0/000?text=${name.substring(0,10)}`;
-            
             const newCandidate = { name, party, photo: photoData };
 
             if (currentElectionType === 'presidente') {
@@ -518,6 +526,7 @@
             viceCandidatePhotoInput.value = '';
         }
 
+        // 특정 후보 지우기
         function handleDeleteCandidate(number) {
              const candidate = elections[currentElectionType].candidates[number];
              showModal('confirm', {
@@ -542,10 +551,10 @@
         
         function handleResetVotes() {
             showModal('confirm', {
-                message: '모든 선거의 투표 기록을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+                message: '모든 기록을 파기하고 선거 투표 데이터를 리셋하시겠습니까?',
                 action: () => {
                     initializeVoteCounts();
-                    alert('모든 투표 기록이 초기화되었습니다.');
+                    alert('모든 투표 결과가 깨끗하게 초기화되었습니다.');
                 }
             });
         }
@@ -563,8 +572,8 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (error) {
-                console.error("Error saving candidate list:", error);
-                alert("후보 목록을 저장하는 중 오류가 발생했습니다.");
+                console.error("저장 불가:", error);
+                alert("후보자 보존 도중 장애가 발생했습니다.");
             }
         }
         
@@ -580,13 +589,13 @@
                         elections = loadedData;
                         initializeVoteCounts();
                         handleElectionTypeChange();
-                        alert('후보 목록을 성공적으로 불러왔습니다.');
+                        alert('후보자 데이터를 성공적으로 복원했습니다.');
                     } else {
-                        throw new Error('Invalid file format.');
+                        throw new Error('유효하지 않은 양식입니다.');
                     }
                 } catch (error) {
-                    console.error("Error loading candidate list:", error);
-                    alert("후보 목록 파일을 불러오는 데 실패했습니다. 파일 형식이 올바른지 확인해주세요.");
+                    console.error("복원 실패:", error);
+                    alert("가져온 후보 데이터 규격이 맞지 않습니다.");
                 } finally {
                     loadListInput.value = '';
                 }
@@ -594,7 +603,7 @@
             reader.readAsText(file);
         }
 
-        // --- 결과 렌더링 ---
+        // --- 실시간 투표 집계 결과 화면 ---
         function renderResults() {
             const electionData = elections[currentElectionType];
             const electionVotes = voteCounts[currentElectionType];
@@ -612,24 +621,24 @@
             
             results.sort((a, b) => b.votes - a.votes);
 
-            let html = `<div class="space-y-3">`;
+            let html = `<div class="space-y-3 text-sm">`;
             if (totalVotes === 0) {
-                html += '<p class="text-center text-gray-600 py-8">아직 투표 기록이 없습니다.</p>';
+                html += '<p class="text-center text-gray-500 py-8">기록된 투표가 단 1표도 존재하지 않습니다.</p>';
             } else {
                  results.forEach(candidate => {
                     const percentage = totalVotes > 0 ? ((candidate.votes / totalVotes) * 100).toFixed(2) : 0;
-                    const viceInfo = candidate.viceName ? `<p class="text-xs text-gray-600">부통령: ${candidate.viceName}</p>` : '';
+                    const viceInfo = candidate.viceName ? `<p class="text-xs text-gray-500">부통령: ${candidate.viceName}</p>` : '';
                     html += `
                         <div class="flex items-center bg-gray-100 p-2 rounded-lg">
-                            <img src="${candidate.photo}" class="w-12 h-16 object-cover rounded-md mr-4">
-                            <div class="flex-grow">
-                                <p class="font-bold text-lg">${candidate.name} (${candidate.party})</p>
-                                <p class="text-sm text-gray-600">기호 ${candidate.number}</p>
+                            <img src="${candidate.photo}" class="w-10 h-14 object-cover rounded mr-3 bg-gray-200">
+                            <div class="flex-grow min-w-0">
+                                <p class="font-bold truncate text-gray-800">${candidate.name} (${candidate.party})</p>
+                                <p class="text-xs text-indigo-600">기호: ${candidate.number}</p>
                                 ${viceInfo}
                             </div>
-                            <div class="text-right">
-                                <p class="font-bold text-xl">${candidate.votes} 표</p>
-                                <p class="text-gray-700">${percentage}%</p>
+                            <div class="text-right flex-shrink-0 pl-2">
+                                <p class="font-bold text-base text-gray-800">${candidate.votes} 표</p>
+                                <p class="text-xs text-gray-600 font-semibold">${percentage}%</p>
                             </div>
                         </div>
                     `;
@@ -639,10 +648,10 @@
                 const nuloPercentage = totalVotes > 0 ? ((electionVotes.nulo / totalVotes) * 100).toFixed(2) : 0;
                 
                 html += `
-                    <div class="border-t pt-3 mt-3 space-y-2">
-                        <div class="flex justify-between items-center text-lg"><span>기권 (Branco):</span> <span class="font-bold">${electionVotes.branco} 표 (${brancoPercentage}%)</span></div>
-                        <div class="flex justify-between items-center text-lg"><span>무효 (Nulo):</span> <span class="font-bold">${electionVotes.nulo} 표 (${nuloPercentage}%)</span></div>
-                        <div class="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>총계:</span> <span>${totalVotes} 표</span></div>
+                    <div class="border-t pt-3 mt-3 space-y-2 text-gray-700">
+                        <div class="flex justify-between items-center"><span>기권 (Branco):</span> <span class="font-semibold">${electionVotes.branco} 표 (${brancoPercentage}%)</span></div>
+                        <div class="flex justify-between items-center"><span>무효 (Nulo):</span> <span class="font-semibold">${electionVotes.nulo} 표 (${nuloPercentage}%)</span></div>
+                        <div class="flex justify-between items-center font-bold text-base border-t pt-2 mt-2 text-gray-900"><span>총 투표수:</span> <span>${totalVotes} 표</span></div>
                     </div>
                 `;
             }
@@ -650,16 +659,18 @@
             resultsModalBody.innerHTML = html;
         }
 
-        // --- 투표 기계 기능 ---
+        // --- 실 투표 기기 로직 가동부 ---
         function startStage() {
             let stage = elections[currentElectionType];
             officeTitleEl.innerHTML = stage.title;
             currentNumber = '';
             isBlankVote = false;
             numberInputsEl.innerHTML = '';
+            
+            // 반응형 크기의 자릿수 상자 생성
             for (let i = 0; i < stage.digits; i++) {
                 const box = document.createElement('div');
-                box.className = 'numero-input flex items-center justify-center text-3xl bg-white';
+                box.className = 'numero-input w-8 h-10 sm:w-10 sm:h-12 flex items-center justify-center text-xl sm:text-2xl lg:text-3xl bg-white font-bold rounded shadow-sm';
                 numberInputsEl.appendChild(box);
             }
             updateInterface();
@@ -678,7 +689,9 @@
             let candidate = elections[currentElectionType].candidates[currentNumber];
             let numberBoxes = numberInputsEl.querySelectorAll('div');
 
-            for(let i=0; i<numberBoxes.length; i++) numberBoxes[i].textContent = currentNumber[i] || '';
+            for(let i=0; i<numberBoxes.length; i++) {
+                numberBoxes[i].textContent = currentNumber[i] || '';
+            }
             
             const placeholderImg = 'https://placehold.co/120x140/d1d5db/d1d5db?text=.';
             const vicePlaceholderImg = 'https://placehold.co/100x120/d1d5db/d1d5db?text=.';
@@ -709,7 +722,7 @@
                         viceCandidatePhotoEl.src = candidate.vicePhoto;
                     }
                 } else {
-                    specialMessageEl.innerHTML = 'NÚMERO ERRADO<br><span class="text-3xl font-bold">VOTO NULO</span>';
+                    specialMessageEl.innerHTML = 'NÚMERO ERRADO<br><span class="text-lg sm:text-xl font-bold">VOTO NULO</span>';
                     specialMessageEl.classList.remove('hidden');
                 }
             }
@@ -724,7 +737,7 @@
             }
         }
 
-        function brancoClicked() {
+        function blancoClicked() {
             if(currentNumber === '') {
                 isBlankVote = true;
                 playSound('key');
@@ -766,11 +779,11 @@
             endScreenEl.classList.add('flex');
         }
 
-        // --- 초기화 및 이벤트 리스너 ---
+        // --- 전체 바인딩 및 이벤트 처리 ---
         window.onload = () => {
             initializeVoteCounts();
             
-            // Event Listeners
+            // 기본 이벤트 매핑
             electionTypeSelector.addEventListener('change', handleElectionTypeChange);
             addCandidateForm.addEventListener('submit', handleAddCandidate);
             showResultsBtn.addEventListener('click', () => showModal('results'));
@@ -779,7 +792,7 @@
             loadListBtn.addEventListener('click', () => loadListInput.click());
             loadListInput.addEventListener('change', handleLoadListFile);
 
-            // Modal listeners
+            // 맞춤 모달 시스템 매핑
             modalCancelBtn.addEventListener('click', hideAllModals);
             modalConfirmBtn.addEventListener('click', () => {
                 if (typeof actionToConfirm === 'function') actionToConfirm();
@@ -789,14 +802,21 @@
             resultsModalFooterCloseBtn.addEventListener('click', hideAllModals);
             modalBackdrop.addEventListener('click', hideAllModals);
 
-            // Drag and Drop and File Input setup
+            // 터치와 마우스 환경 통합 드래그앤드롭 모듈화
             const setupDropZone = (dropZone, fileInput, previewEl) => {
                 dropZone.addEventListener('click', () => fileInput.click());
                 fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) updatePhotoPreview(e.target.files[0], previewEl);
+                    if (e.target.files.length > 0) {
+                        updatePhotoPreview(e.target.files[0], previewEl);
+                    }
                 });
-                dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-                dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
+                });
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
+                });
                 dropZone.addEventListener('drop', (e) => {
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
@@ -815,5 +835,3 @@
     </script>
 </body>
 </html>
-
-
