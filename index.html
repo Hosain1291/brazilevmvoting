@@ -34,16 +34,16 @@
             box-shadow: 0 4px #1a1a1a;
             transition: all 0.1s ease;
         }
-        .tecla:active {
+        .tecla:active, .tecla.keyboard-active {
             box-shadow: 0 2px #1a1a1a;
             transform: translateY(2px);
         }
         .tecla-branco { background-color: #f5f5f5; color: #333; box-shadow: 0 4px #b0b0b0; }
-        .tecla-branco:active { box-shadow: 0 2px #b0b0b0; }
+        .tecla-branco:active, .tecla-branco.keyboard-active { box-shadow: 0 2px #b0b0b0; transform: translateY(2px); }
         .tecla-corrige { background-color: #f08202; color: white; box-shadow: 0 4px #c06801; }
-        .tecla-corrige:active { box-shadow: 0 2px #c06801; }
+        .tecla-corrige:active, .tecla-corrige.keyboard-active { box-shadow: 0 2px #c06801; transform: translateY(2px); }
         .tecla-confirma { background-color: #00965a; color: white; box-shadow: 0 4px #006b3f; }
-        .tecla-confirma:active { box-shadow: 0 2px #006b3f; }
+        .tecla-confirma:active, .tecla-confirma.keyboard-active { box-shadow: 0 2px #006b3f; transform: translateY(2px); }
 
         .tela {
             background-color: #d1d5db;
@@ -217,23 +217,23 @@
             <!-- 키패드 영역 (Keypad) -->
             <div class="teclado w-full md:w-[42%] flex flex-col justify-between p-4 sm:p-5 gap-4">
                 <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
-                    <button onclick="keypadClicked('1')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">1</button>
-                    <button onclick="keypadClicked('2')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">2</button>
-                    <button onclick="keypadClicked('3')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">3</button>
-                    <button onclick="keypadClicked('4')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">4</button>
-                    <button onclick="keypadClicked('5')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">5</button>
-                    <button onclick="keypadClicked('6')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">6</button>
-                    <button onclick="keypadClicked('7')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">7</button>
-                    <button onclick="keypadClicked('8')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">8</button>
-                    <button onclick="keypadClicked('9')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">9</button>
-                    <button onclick="keypadClicked('0')" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow col-start-2">0</button>
+                    <button onclick="keypadClicked('1')" data-num="1" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">1</button>
+                    <button onclick="keypadClicked('2')" data-num="2" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">2</button>
+                    <button onclick="keypadClicked('3')" data-num="3" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">3</button>
+                    <button onclick="keypadClicked('4')" data-num="4" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">4</button>
+                    <button onclick="keypadClicked('5')" data-num="5" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">5</button>
+                    <button onclick="keypadClicked('6')" data-num="6" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">6</button>
+                    <button onclick="keypadClicked('7')" data-num="7" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">7</button>
+                    <button onclick="keypadClicked('8')" data-num="8" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">8</button>
+                    <button onclick="keypadClicked('9')" data-num="9" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow">9</button>
+                    <button onclick="keypadClicked('0')" data-num="0" class="tecla h-12 sm:h-14 lg:h-16 rounded text-xl sm:text-2xl shadow col-start-2">0</button>
                 </div>
                 
                 <!-- 하단 행정/제어용 키패드 (BRANCO, CORRIGE, CONFIRMA) -->
                 <div class="flex justify-between gap-2 pt-2">
-                    <button onclick="brancoClicked()" class="tecla-branco w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">BRANCO</button>
-                    <button onclick="corrigeClicked()" class="tecla-corrige w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">CORRIGE</button>
-                    <button onclick="confirmaClicked()" class="tecla-confirma w-1/3 h-13 sm:h-15 rounded text-xs sm:text-sm font-bold shadow-md tracking-tighter">CONFIRMA</button>
+                    <button onclick="brancoClicked()" id="btn-branco" class="tecla-branco w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">BRANCO</button>
+                    <button onclick="corrigeClicked()" id="btn-corrige" class="tecla-corrige w-1/3 h-11 sm:h-13 rounded text-[10px] sm:text-xs font-bold shadow tracking-tighter">CORRIGE</button>
+                    <button onclick="confirmaClicked()" id="btn-confirma" class="tecla-confirma w-1/3 h-13 sm:h-15 rounded text-xs sm:text-sm font-bold shadow-md tracking-tighter">CONFIRMA</button>
                 </div>
             </div>
         </div>
@@ -829,7 +829,7 @@
             }
         }
 
-        function blancoClicked() {
+        function brancoClicked() {
             if(currentNumber === '') {
                 isBlankVote = true;
                 playSound('key');
@@ -869,6 +869,15 @@
             instructionsEl.classList.add('hidden');
             endScreenEl.classList.remove('hidden');
             endScreenEl.classList.add('flex');
+        }
+
+        // 키보드 입력 물리 피드백 효과 함수
+        function triggerButtonActiveFeedback(buttonEl) {
+            if (!buttonEl) return;
+            buttonEl.classList.add('keyboard-active');
+            setTimeout(() => {
+                buttonEl.classList.remove('keyboard-active');
+            }, 120);
         }
 
         // --- 전체 바인딩 및 이벤트 처리 ---
@@ -947,6 +956,47 @@
 
             setupDropZone(presidentDropZone, candidatePhotoInput, photoPreviewEl, candidatePhotoUrlInput);
             setupDropZone(vicePresidentDropZone, viceCandidatePhotoInput, vicePhotoPreviewEl, viceCandidatePhotoUrlInput);
+
+            // --- 키보드 입력 및 이벤트 리스너 가동 ---
+            window.addEventListener('keydown', (e) => {
+                // 관리자 선거 관리 패널 입력 폼 내의 포커스 상태일 때는 투표 단축키 가동을 안전하게 정지합니다.
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'TEXTAREA')) {
+                    return;
+                }
+
+                const key = e.key;
+
+                // 1) 숫자 키 및 숫자 키패드 처리
+                if (key >= '0' && key <= '9') {
+                    // 키패드 버튼 피드백 연출
+                    const keyBtn = document.querySelector(`.tecla[onclick="keypadClicked('${key}')"]`);
+                    triggerButtonActiveFeedback(keyBtn);
+                    keypadClicked(key);
+                } 
+                // 2) Enter 키 처리 -> CONFIRMA 녹색 키
+                else if (key === 'Enter') {
+                    const confirmBtn = document.getElementById('btn-confirma');
+                    triggerButtonActiveFeedback(confirmBtn);
+                    confirmaClicked();
+                } 
+                // 3) Backspace 및 Delete 키 처리 -> CORRIGE 주황색 키
+                else if (key === 'Backspace' || key === 'Delete') {
+                    const corrigeBtn = document.getElementById('btn-corrige');
+                    triggerButtonActiveFeedback(corrigeBtn);
+                    corrigeClicked();
+                } 
+                // 4) Spacebar 또는 알파벳 B/b 키 처리 -> BRANCO 흰색 키
+                else if (key === ' ' || key.toLowerCase() === 'b') {
+                    // 스페이스바 입력 시 브라우저 기본 스크롤 동작 방지
+                    if (key === ' ') {
+                        e.preventDefault();
+                    }
+                    const brancoBtn = document.getElementById('btn-branco');
+                    triggerButtonActiveFeedback(brancoBtn);
+                    brancoClicked();
+                }
+            });
 
             handleElectionTypeChange();
         };
